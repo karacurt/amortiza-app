@@ -1,108 +1,101 @@
 import { ParcelasPRICE } from '../types'
 
-export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], amortizationValue: number, salaryOne: number, salaryTwo: number, emergencyValue: number, condominiumValue: number) {
-  console.log('calculaAmortizacao')
-  console.log(parcelasPrice, salaryOne, salaryTwo, emergencyValue, condominiumValue)
+export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], valorMensalParaAmortizar: number, salaryOne: number, salaryTwo: number, emergencyValue: number) {
+  const totalParcelas = parcelasPrice.length
 
-  const condominioAnual = condominiumValue * 12
+  let saldoDevedor = parcelasPrice[0].saldoDevedor
 
-  let simulacaoAmortizacao = []
-  const totalParcelas = parcelasPrice.length - 1
-  let parcelasAmortizadas = 0
-  const valorAnualAmortizacao = amortizationValue * 12
-  console.log('valorAnualAmortizacao', valorAnualAmortizacao)
   let jurosAcumulado = 0
   let pagoAcumulado = 0
   let amortizacaoAcumulada = 0
 
-  for (let i = 12; i < parcelasPrice.length; i = i + 12) {
-    if (totalParcelas - (i + parcelasAmortizadas) <= 0) return simulacaoAmortizacao
+  let parcelasAmortizadas = 0
+  let parcelasPagas = 0
 
-    let jurosAnual = 0
-    let pagoAnual = 0
+  let saldoAmortizacao = 0
+  let simulacaoAmortizacao = []
+
+  for (let i = 12; i < parcelasPrice.length; i = i + 12) {
+    let parcelasRestantes = totalParcelas - (parcelasPagas + parcelasAmortizadas)
+    if (parcelasRestantes <= 0) return simulacaoAmortizacao
+
+    let meses = 0
 
     for (let j = i - 12; j < i; j++) {
-      pagoAnual += parcelasPrice[j].valor
-      jurosAnual += parcelasPrice[j].juros
-    }
-    jurosAcumulado += jurosAnual
-    pagoAcumulado += pagoAnual
+      if (saldoDevedor <= 0) {
+        // saldoDevedor = 0
+        parcelasRestantes = 0
+        break
+      }
 
-    console.log('pagoAnual', pagoAnual)
-    console.log('jurosAnual', jurosAnual)
+      //pagamento mensal normal
+      pagoAcumulado += parcelasPrice[j].valor
+      jurosAcumulado += parcelasPrice[j].juros
+      saldoDevedor -= parcelasPrice[j].amortizacao
+      meses++
+      parcelasPagas++
 
-    const valorAnualParaAmortizar = valorAnualAmortizacao - pagoAnual - condominioAnual
-    console.log('valorAnualParaAmortizar', valorAnualParaAmortizar)
-
-    const quantidadeParcelasAmortizadas = amortizar(parcelasPrice, valorAnualParaAmortizar, totalParcelas - parcelasAmortizadas)
-    console.log('quantidadeParcelasAmortizadas', quantidadeParcelasAmortizadas)
-    let meses = 12
-
-    //ultimo ano de pagamento
-    if (totalParcelas - (quantidadeParcelasAmortizadas + i + parcelasAmortizadas) <= 0) {
-      //let ultimaAmortizacao = totalParcelas - i - parcelasAmortizadas
-      console.log('===== ULTIMA AMORTIZACAO =====')
-      console.log('ultimaAmortizacao', quantidadeParcelasAmortizadas + i + parcelasAmortizadas)
-      console.log('qtd parcelas amortizadas', quantidadeParcelasAmortizadas)
-      console.log('i', i)
-      console.log('parcelasAmortizadas', parcelasAmortizadas)
-
-      const valorMensalParaAmortizar = amortizationValue - condominiumValue - parcelasPrice[0].valor
-
-      const valorParaQuitar = parcelasPrice[i].saldoDevedor - amortizacaoAcumulada
-
-      console.log('valorMensalParaAmortizar', valorMensalParaAmortizar)
-      console.log('valorParaQuitar', valorParaQuitar)
-      console.log('pagoAnual', pagoAnual)
-
-      const mesesParaQuitar = valorParaQuitar / (valorMensalParaAmortizar + parcelasPrice[i].valor)
-      console.log('mesesParQuitar via pagAnual', mesesParaQuitar)
-      meses = mesesParaQuitar
-
-      const quantidadeUltimaAmortizacao = totalParcelas - (i + parcelasAmortizadas)
-      amortizacaoAcumulada += valorParaQuitar
-
-      parcelasAmortizadas += quantidadeUltimaAmortizacao + 1
-    } else {
-      amortizacaoAcumulada += valorAnualParaAmortizar
-      parcelasAmortizadas += quantidadeParcelasAmortizadas
+      //amortizacao
+      saldoAmortizacao += valorMensalParaAmortizar
+      const amortizacaoMensal = amortizar(parcelasPrice, saldoAmortizacao, totalParcelas - parcelasAmortizadas, parcelasPagas, saldoDevedor)
+      saldoAmortizacao = amortizacaoMensal.troco
+      parcelasAmortizadas += amortizacaoMensal.quantidade
+      amortizacaoAcumulada += amortizacaoMensal.valor
+      saldoDevedor -= amortizacaoMensal.valor
     }
 
-    let amortizacao = {
+    const amortizacao = {
       id: i,
       ano: i / 12,
       meses,
-      totalPago: pagoAcumulado,
+      totalPago: pagoAcumulado + amortizacaoAcumulada,
       juros: jurosAcumulado,
-      condominio: condominioAnual * (i / 12),
-      parcelasPagas: i,
+      parcelasPagas,
       parcelasAmortizadas,
-      parcelasRestantes: totalParcelas + 1 - (i + parcelasAmortizadas),
+      parcelasRestantes,
       amortizacaoAcumulada,
       saldoDevedorNormal: parcelasPrice[i].saldoDevedor,
-      saldoDevedorAmortizando: parcelasPrice[i].saldoDevedor - amortizacaoAcumulada
+      saldoDevedorAmortizando: saldoDevedor
     }
 
     simulacaoAmortizacao.push(amortizacao)
-    console.log('simulacaoAmortizacao', simulacaoAmortizacao)
   }
-  console.log('simulacaoAmortizacao', simulacaoAmortizacao)
 
   return simulacaoAmortizacao
 }
 
-function amortizar(parcelasPrice: ParcelasPRICE[], valorAnualParaAmortizar: number, index: number) {
-  let amortizacao = 0
+function amortizar(parcelasPrice: ParcelasPRICE[], valorParaAmortizar: number, index: number, mesesPagos: number, saldoDevedor: number) {
+  let amortizacaoPaga = 0
   let parcelasAmortizadas = 0
 
-  for (let i = index; i >= 0; i--) {
-    if (amortizacao < valorAnualParaAmortizar) {
-      amortizacao += parcelasPrice[i].amortizacao
-      parcelasAmortizadas++
-    } else {
+  for (let i = index - 1; i >= 0; i--) {
+    if (index <= mesesPagos) {
+      if (saldoDevedor > 0) {
+        amortizacaoPaga += saldoDevedor
+      }
       break
     }
+    const valorParcelaAmortizacao = parcelasPrice[i].amortizacao
+
+    if (saldoDevedor <= 0) break
+    if (valorParcelaAmortizacao >= saldoDevedor) {
+      amortizacaoPaga += saldoDevedor
+      break
+    }
+    if (!(amortizacaoPaga + valorParcelaAmortizacao <= valorParaAmortizar)) break
+
+    saldoDevedor -= valorParcelaAmortizacao
+    amortizacaoPaga += valorParcelaAmortizacao
+    parcelasAmortizadas++
   }
 
-  return parcelasAmortizadas
+  const troco = valorParaAmortizar - amortizacaoPaga
+
+  const response = {
+    valor: amortizacaoPaga,
+    quantidade: parcelasAmortizadas,
+    troco
+  }
+
+  return response
 }

@@ -33,31 +33,28 @@ export const Form: React.FC = () => {
   const getAmortizationTable = () => {
     const parcelasPriceSimulacao = calculaPRICE(financing, fees, parcelas)
     setParcelasPRICE(parcelasPriceSimulacao)
-    const simulacao = calculaAmortizacao(parcelasPriceSimulacao, amortizationValue, salaryOne, salaryTwo, emergencyValue, condominiumValue)
+    const simulacao = calculaAmortizacao(parcelasPriceSimulacao, amortizationValue, salaryOne, salaryTwo, emergencyValue)
     setAmortizationTableValue(simulacao)
     const lastIndex = simulacao.length - 1
+
     setTempoParaQuitar(simulacao[lastIndex].ano)
-
     setMesesParaQuitar(simulacao[lastIndex].meses)
-
-    const totalGeral = simulacao[lastIndex].totalPago + simulacao[lastIndex].condominio + simulacao[lastIndex].amortizacaoAcumulada
-    setTotalGeralPago(totalGeral)
+    setTotalGeralPago(simulacao[lastIndex].totalPago)
   }
-  const columnsPrice: GridColDef[] = [
+  /* const columnsPrice: GridColDef[] = [
     { field: 'numero', headerName: 'Nº Parcela', width: 170 },
     { field: 'valor', headerName: 'Valor', width: 130 },
     { field: 'amortizacao', headerName: 'Amortização', width: 170 },
     { field: 'juros', headerName: 'Juros', width: 130 },
     { field: 'saldoDevedor', headerName: 'Saldo Devedor', width: 180 }
-  ]
+  ]*/
   const columnsAmortization: GridColDef[] = [
-    { field: 'ano', headerName: 'Ano', width: 170 },
-    { field: 'totalPago', headerName: 'Total Pago', width: 230 },
-    { field: 'juros', headerName: 'Juros Pago Acumulado', width: 230 },
-    { field: 'condominio', headerName: 'Condomínio Acumulado', width: 250 },
+    { field: 'ano', headerName: 'Ano', width: 110 },
+    { field: 'totalPago', headerName: 'Total Pago', width: 170 },
+    { field: 'juros', headerName: 'Juros Pago', width: 170 },
     { field: 'parcelasPagas', headerName: 'Parcelas Pagas', width: 190 },
     { field: 'parcelasAmortizadas', headerName: 'Parcelas amortizadas', width: 230 },
-    { field: 'parcelasRestantes', headerName: 'Parcelas Restantes', width: 230 },
+    { field: 'parcelasRestantes', headerName: 'Prazo (meses)', width: 180 },
     { field: 'amortizacaoAcumulada', headerName: 'Fundo p/ amortizar', width: 180 },
     { field: 'saldoDevedorNormal', headerName: 'Saldo normal', width: 180 },
     { field: 'saldoDevedorAmortizando', headerName: 'Saldo amortizando', width: 180 }
@@ -89,19 +86,9 @@ export const Form: React.FC = () => {
         onChange={(event: Event, value: number) => setFees(value)}
       />
       <br />
-      <CurrencyTextField
-        label='Quantidade de parcelas'
-        variant='standard'
-        value={parcelas}
-        currencySymbol=''
-        //minimumValue="0"
-        outputFormat='number'
-        decimalCharacter=','
-        digitGroupSeparator='.'
-        onChange={(event: Event, value: number) => setParcelas(value)}
-      />
+      <CurrencyTextField label='Quantidade de parcelas' variant='standard' value={parcelas} currencySymbol='' minimumValue='360' outputFormat='number' decimalCharacter=',' digitGroupSeparator='.' onChange={(event: Event, value: number) => setParcelas(value)} />
       <br />
-      <CurrencyTextField
+      {/* <CurrencyTextField
         label='Salario Líquido 1'
         variant='standard'
         value={salaryOne}
@@ -124,20 +111,10 @@ export const Form: React.FC = () => {
         digitGroupSeparator='.'
         onChange={(event: Event, value: number) => setSalaryTwo(value)}
       />
+      <br />*/}
+      <CurrencyTextField label='Valor dedicado a amortização mensal' variant='standard' value={amortizationValue} currencySymbol='R$' minimumValue='0' outputFormat='number' decimalCharacter=',' digitGroupSeparator='.' onChange={(event: Event, value: number) => setAmortizationValue(value)} />
       <br />
-      <CurrencyTextField
-        label='Valor dedicado a amortização mensal'
-        variant='standard'
-        value={amortizationValue}
-        currencySymbol='R$'
-        //minimumValue="0"
-        outputFormat='number'
-        decimalCharacter=','
-        digitGroupSeparator='.'
-        onChange={(event: Event, value: number) => setAmortizationValue(value)}
-      />
-      <br />
-      <CurrencyTextField
+      {/*<CurrencyTextField
         label='Reserva mensal para emergências'
         variant='standard'
         value={emergencyValue}
@@ -160,12 +137,8 @@ export const Form: React.FC = () => {
         digitGroupSeparator='.'
         onChange={(event: Event, value: number) => setCondominiumValue(value)}
       />
-      <br />
-      {/*<Stack spacing={2} direction='row'>
-        <Button variant='contained' onClick={getPriceTable}>
-          Calcular Parcelas Financiamento
-        </Button>
-  </Stack>*/}
+        <br />*/}
+
       <Stack spacing={2} direction='row'>
         <Button variant='contained' onClick={getAmortizationTable}>
           Simular Amortização
@@ -178,11 +151,11 @@ export const Form: React.FC = () => {
       <h3>
         Total Geral pago: R$ {totalGeralPago.toFixed(2)}
         <br />
-        Tempo para quitar : {mesesParaQuitar < 12 ? `${tempoParaQuitar} anos e ${mesesParaQuitar.toFixed(0)} meses` : `${tempoParaQuitar.toFixed(0) + 1} anos`}
+        Tempo para quitar : {mesesParaQuitar < 12 ? `${tempoParaQuitar} anos e ${mesesParaQuitar.toFixed(0)} meses` : `${(tempoParaQuitar + 1).toFixed(0)} anos`}
       </h3>
-      <div style={{ height: 800, width: '100%' }}>
+      {/* <div style={{ height: 800, width: '100%' }}>
         <DataGrid rows={parcelasPRICE} columns={columnsPrice} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
-      </div>
+  </div>*/}
     </>
   )
 }
