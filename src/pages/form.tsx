@@ -50,7 +50,7 @@ export const Form: React.FC = () => {
   ]*/
   const columnsAmortization: GridColDef[] = [
     { field: 'ano', headerName: 'Ano', width: 110 },
-    { field: 'totalPago', headerName: 'Total Pago', width: 170 },
+    { field: 'pagoAcumulado', headerName: 'Total Pago', width: 170 },
     { field: 'juros', headerName: 'Juros Pago', width: 170 },
     { field: 'parcelasPagas', headerName: 'Parcelas Pagas', width: 190 },
     { field: 'parcelasAmortizadas', headerName: 'Parcelas amortizadas', width: 230 },

@@ -48,6 +48,7 @@ export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], valorMensalPa
       id: i,
       ano: i / 12,
       meses,
+      pagoAcumulado,
       totalPago: pagoAcumulado + amortizacaoAcumulada,
       juros: jurosAcumulado,
       parcelasPagas,
