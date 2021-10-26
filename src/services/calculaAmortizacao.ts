@@ -1,4 +1,3 @@
-import { convertToObject } from 'typescript'
 import { ParcelasPRICE } from '../types'
 
 export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], amortizationValue: number, salaryOne: number, salaryTwo: number, emergencyValue: number, condominiumValue: number) {
@@ -38,6 +37,8 @@ export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], amortizationV
     const quantidadeParcelasAmortizadas = amortizar(parcelasPrice, valorAnualParaAmortizar, totalParcelas - parcelasAmortizadas)
     console.log('quantidadeParcelasAmortizadas', quantidadeParcelasAmortizadas)
     let meses = 12
+
+    //ultimo ano de pagamento
     if (totalParcelas - (quantidadeParcelasAmortizadas + i + parcelasAmortizadas) <= 0) {
       //let ultimaAmortizacao = totalParcelas - i - parcelasAmortizadas
       console.log('===== ULTIMA AMORTIZACAO =====')
@@ -47,12 +48,15 @@ export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], amortizationV
       console.log('parcelasAmortizadas', parcelasAmortizadas)
 
       const valorMensalParaAmortizar = amortizationValue - condominiumValue - parcelasPrice[0].valor
+
       const valorParaQuitar = parcelasPrice[i].saldoDevedor - amortizacaoAcumulada
+
       console.log('valorMensalParaAmortizar', valorMensalParaAmortizar)
       console.log('valorParaQuitar', valorParaQuitar)
       console.log('pagoAnual', pagoAnual)
-      const mesesParaQuitar = (valorParaQuitar - pagoAnual) / valorMensalParaAmortizar
-      console.log('mesesParQuitar', mesesParaQuitar)
+
+      const mesesParaQuitar = valorParaQuitar / (valorMensalParaAmortizar + parcelasPrice[i].valor)
+      console.log('mesesParQuitar via pagAnual', mesesParaQuitar)
       meses = mesesParaQuitar
 
       const quantidadeUltimaAmortizacao = totalParcelas - (i + parcelasAmortizadas)

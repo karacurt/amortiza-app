@@ -178,7 +178,7 @@ export const Form: React.FC = () => {
       <h3>
         Total Geral pago: R$ {totalGeralPago.toFixed(2)}
         <br />
-        Tempo para quitar : {tempoParaQuitar} anos e {mesesParaQuitar.toFixed(0)} meses
+        Tempo para quitar : {mesesParaQuitar < 12 ? `${tempoParaQuitar} anos e ${mesesParaQuitar.toFixed(0)} meses` : `${tempoParaQuitar.toFixed(0) + 1} anos`}
       </h3>
       <div style={{ height: 800, width: '100%' }}>
         <DataGrid rows={parcelasPRICE} columns={columnsPrice} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
