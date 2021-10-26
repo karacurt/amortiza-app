@@ -5,14 +5,9 @@ import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import { calculaPRICE } from '../services/calculaPRICE'
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid'
-interface ParcelasPRICE {
-  id: number
-  numero: number
-  valor: string
-  amortizacao: string
-  juros: string
-  saldoDevedor: string
-}
+import { ParcelasPRICE } from '../types'
+import { calculaAmortizacao } from '../services/calculaAmortizacao'
+
 export const Form: React.FC = () => {
   const [financing, setFinancing] = useState(0)
   const [salaryOne, setSalaryOne] = useState(0)
@@ -22,21 +17,50 @@ export const Form: React.FC = () => {
   const [emergencyValue, setEmergencyValue] = useState(0)
   const [amortizationValue, setAmortizationValue] = useState(0)
   const [parcelas, setParcelas] = useState(0)
-  const [parcelasPRICE, setParcelasPRICE] = useState<ParcelasPRICE[]>([{ id: 0, numero: 0, valor: 'R$ 0,00', juros: 'R$ 0,00', amortizacao: 'R$ 0,00', saldoDevedor: 'R$ 0,00' }])
+  const [parcelasPRICE, setParcelasPRICE] = useState<ParcelasPRICE[]>([{ id: 0, numero: 0, valor: 0, juros: 0, amortizacao: 0, saldoDevedor: 0 }])
+  const [amortizationTable, setAmortizationTableValue] = useState([] as any)
+  const [totalGeralPago, setTotalGeralPago] = useState(0)
+  const [tempoParaQuitar, setTempoParaQuitar] = useState(0)
+  const [mesesParaQuitar, setMesesParaQuitar] = useState(0)
 
   console.log(financing, salaryOne, salaryTwo, fees)
 
-  const onClick = () => {
+  /* const getPriceTable = () => {
     const result = calculaPRICE(financing, fees, parcelas)
     setParcelasPRICE(result)
     console.log(result)
+  }*/
+  const getAmortizationTable = () => {
+    const parcelasPriceSimulacao = calculaPRICE(financing, fees, parcelas)
+    setParcelasPRICE(parcelasPriceSimulacao)
+    const simulacao = calculaAmortizacao(parcelasPriceSimulacao, amortizationValue, salaryOne, salaryTwo, emergencyValue, condominiumValue)
+    setAmortizationTableValue(simulacao)
+    const lastIndex = simulacao.length - 1
+    setTempoParaQuitar(simulacao[lastIndex].ano)
+
+    setMesesParaQuitar(simulacao[lastIndex].meses)
+
+    const totalGeral = simulacao[lastIndex].totalPago + simulacao[lastIndex].condominio + simulacao[lastIndex].amortizacaoAcumulada
+    setTotalGeralPago(totalGeral)
   }
-  const columns: GridColDef[] = [
+  const columnsPrice: GridColDef[] = [
     { field: 'numero', headerName: 'Nº Parcela', width: 170 },
     { field: 'valor', headerName: 'Valor', width: 130 },
     { field: 'amortizacao', headerName: 'Amortização', width: 170 },
     { field: 'juros', headerName: 'Juros', width: 130 },
     { field: 'saldoDevedor', headerName: 'Saldo Devedor', width: 180 }
+  ]
+  const columnsAmortization: GridColDef[] = [
+    { field: 'ano', headerName: 'Ano', width: 170 },
+    { field: 'totalPago', headerName: 'Total Pago', width: 230 },
+    { field: 'juros', headerName: 'Juros Pago Acumulado', width: 230 },
+    { field: 'condominio', headerName: 'Condomínio Acumulado', width: 250 },
+    { field: 'parcelasPagas', headerName: 'Parcelas Pagas', width: 190 },
+    { field: 'parcelasAmortizadas', headerName: 'Parcelas amortizadas', width: 230 },
+    { field: 'parcelasRestantes', headerName: 'Parcelas Restantes', width: 230 },
+    { field: 'amortizacaoAcumulada', headerName: 'Fundo p/ amortizar', width: 180 },
+    { field: 'saldoDevedorNormal', headerName: 'Saldo normal', width: 180 },
+    { field: 'saldoDevedorAmortizando', headerName: 'Saldo amortizando', width: 180 }
   ]
 
   return (
@@ -137,14 +161,27 @@ export const Form: React.FC = () => {
         onChange={(event: Event, value: number) => setCondominiumValue(value)}
       />
       <br />
+      {/*<Stack spacing={2} direction='row'>
+        <Button variant='contained' onClick={getPriceTable}>
+          Calcular Parcelas Financiamento
+        </Button>
+  </Stack>*/}
       <Stack spacing={2} direction='row'>
-        <Button variant='contained' onClick={onClick}>
-          Calcular
+        <Button variant='contained' onClick={getAmortizationTable}>
+          Simular Amortização
         </Button>
       </Stack>
       <br />
+      <div style={{ height: 400, width: '100%' }}>
+        <DataGrid rows={amortizationTable} columns={columnsAmortization} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
+      </div>
+      <h3>
+        Total Geral pago: R$ {totalGeralPago.toFixed(2)}
+        <br />
+        Tempo para quitar : {tempoParaQuitar} anos e {mesesParaQuitar.toFixed(0)} meses
+      </h3>
       <div style={{ height: 800, width: '100%' }}>
-        <DataGrid rows={parcelasPRICE} columns={columns} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
+        <DataGrid rows={parcelasPRICE} columns={columnsPrice} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
       </div>
     </>
   )
