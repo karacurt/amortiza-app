@@ -4,9 +4,10 @@ import CurrencyTextField from '@unicef/material-ui-currency-textfield'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import { calculaPRICE } from '../services/calculaPRICE'
-import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid'
+import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { ParcelasPRICE } from '../types'
 import { calculaAmortizacao } from '../services/calculaAmortizacao'
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 
 export const Form: React.FC = () => {
   const [financing, setFinancing] = useState(0)
@@ -22,6 +23,8 @@ export const Form: React.FC = () => {
   const [totalGeralPago, setTotalGeralPago] = useState(0)
   const [tempoParaQuitar, setTempoParaQuitar] = useState(0)
   const [mesesParaQuitar, setMesesParaQuitar] = useState(0)
+  const [graphData, setGraphData] = useState([] as any)
+  const [loading, setLoading] = useState(false)
 
   console.log(financing, salaryOne, salaryTwo, fees)
 
@@ -30,10 +33,32 @@ export const Form: React.FC = () => {
     setParcelasPRICE(result)
     console.log(result)
   }*/
+
+  const generateInsights = () => {
+    let insights = []
+
+    for (let i = 0; i <= amortizationValue * 2; i += 100) {
+      const simulacao = calculaAmortizacao(parcelasPRICE, i)
+      const ultimoValor = simulacao[simulacao.length - 1]
+      const tempo = ultimoValor.ano + ultimoValor.meses / 12
+      const totalPago = ultimoValor.totalPago
+
+      const data = {
+        tempo: tempo,
+        totalPago: totalPago.toFixed(2),
+        amortizationMensal: `R$ ${i.toFixed(2)}`
+      }
+      insights.push(data)
+    }
+
+    setGraphData(insights)
+    setLoading(true)
+  }
+
   const getAmortizationTable = () => {
     const parcelasPriceSimulacao = calculaPRICE(financing, fees, parcelas)
     setParcelasPRICE(parcelasPriceSimulacao)
-    const simulacao = calculaAmortizacao(parcelasPriceSimulacao, amortizationValue, salaryOne, salaryTwo, emergencyValue)
+    const simulacao = calculaAmortizacao(parcelasPriceSimulacao, amortizationValue)
     setAmortizationTableValue(simulacao)
     const lastIndex = simulacao.length - 1
 
@@ -86,7 +111,7 @@ export const Form: React.FC = () => {
         onChange={(event: Event, value: number) => setFees(value)}
       />
       <br />
-      <CurrencyTextField label='Quantidade de parcelas' variant='standard' value={parcelas} currencySymbol='' minimumValue='360' outputFormat='number' decimalCharacter=',' digitGroupSeparator='.' onChange={(event: Event, value: number) => setParcelas(value)} />
+      <CurrencyTextField label='Quantidade de parcelas' variant='standard' value={parcelas} currencySymbol='' /*minimumValue='360'*/ outputFormat='number' decimalCharacter=',' digitGroupSeparator='.' onChange={(event: Event, value: number) => setParcelas(value)} />
       <br />
       {/* <CurrencyTextField
         label='Salario Líquido 1'
@@ -112,7 +137,7 @@ export const Form: React.FC = () => {
         onChange={(event: Event, value: number) => setSalaryTwo(value)}
       />
       <br />*/}
-      <CurrencyTextField label='Valor dedicado a amortização mensal' variant='standard' value={amortizationValue} currencySymbol='R$' minimumValue='0' outputFormat='number' decimalCharacter=',' digitGroupSeparator='.' onChange={(event: Event, value: number) => setAmortizationValue(value)} />
+      <CurrencyTextField label='Valor dedicado a amortização mensal' variant='standard' value={amortizationValue} currencySymbol='R$' /*minimumValue='0'*/ outputFormat='number' decimalCharacter=',' digitGroupSeparator='.' onChange={(event: Event, value: number) => setAmortizationValue(value)} />
       <br />
       {/*<CurrencyTextField
         label='Reserva mensal para emergências'
@@ -144,6 +169,11 @@ export const Form: React.FC = () => {
           Simular Amortização
         </Button>
       </Stack>
+      <Stack spacing={2} direction='row'>
+        <Button variant='contained' onClick={generateInsights}>
+          Gerar Inisghts
+        </Button>
+      </Stack>
       <br />
       <div style={{ height: 400, width: '100%' }}>
         <DataGrid rows={amortizationTable} columns={columnsAmortization} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
@@ -156,6 +186,26 @@ export const Form: React.FC = () => {
       {/* <div style={{ height: 800, width: '100%' }}>
         <DataGrid rows={parcelasPRICE} columns={columnsPrice} pageSize={100} rowsPerPageOptions={[5]} checkboxSelection />
   </div>*/}
+
+      <LineChart
+        width={1800}
+        height={600}
+        data={graphData}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5
+        }}
+      >
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='amortizationMensal' />
+        <YAxis dataKey='tempo' />
+        <Tooltip />
+        <Legend />
+        <Line type='monotone' dataKey='tempo' stroke='#8884d8' activeDot={{ r: 8 }} />
+        <Line type='monotone' dataKey='totalPago' stroke='#82ca9d' />
+      </LineChart>
     </>
   )
 }

@@ -1,6 +1,6 @@
 import { ParcelasPRICE } from '../types'
 
-export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], valorMensalParaAmortizar: number, salaryOne: number, salaryTwo: number, emergencyValue: number) {
+export function calculaAmortizacao(parcelasPrice: ParcelasPRICE[], valorMensalParaAmortizar: number) {
   const totalParcelas = parcelasPrice.length
 
   let saldoDevedor = parcelasPrice[0].saldoDevedor
