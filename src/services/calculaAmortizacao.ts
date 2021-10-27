@@ -81,6 +81,7 @@ function amortizar(parcelasPrice: ParcelasPRICE[], valorParaAmortizar: number, i
     if (saldoDevedor <= 0) break
     if (valorParcelaAmortizacao >= saldoDevedor) {
       amortizacaoPaga += saldoDevedor
+      parcelasAmortizadas++
       break
     }
     if (!(amortizacaoPaga + valorParcelaAmortizacao <= valorParaAmortizar)) break
